@@ -42,8 +42,6 @@ def geocode_worker(row):
         req = requests.get(request_url)
         res = req.json()
 
-        print(res)
-
         # We should only use the first result
         try:
             result = res['results'][0]
@@ -52,7 +50,7 @@ def geocode_worker(row):
 
             # Add to list of things to write
             item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
-                                                                                                           lng, lat, row[5], row[6], 
+                                                                                                           lat, lng, row[5], row[6], 
                                                                                                            row[7], row[8], row[9], 
                                                                                                            row[10], row[11], row[12], 
                                                                                                            row[13], row[14], row[15], 
@@ -64,7 +62,7 @@ def geocode_worker(row):
                 request_url = GOOGLE_MAPS_API_URL + '?components=country:{}|postal_code:{}&address={}&key={}'.format(row[10], row[2], row[15], API_KEY)
                 req = requests.get(request_url)
                 res = req.json()
-                print(res)
+                
                 item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                            lat, lng, row[5], row[6], 
                                                                                                            row[7], row[8], row[9], 
@@ -78,7 +76,7 @@ def geocode_worker(row):
                     request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[15] + ',' + row[2], API_KEY)
                     req = requests.get(request_url)
                     res = req.json()
-                    print(res)
+                    
                     item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                                lat, lng, row[5], row[6], 
                                                                                                                row[7], row[8], row[9], 
@@ -92,12 +90,12 @@ def geocode_worker(row):
                         request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[2], API_KEY)
                         req = requests.get(request_url)
                         res = req.json()
-                        print(res)
+                        
                         item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                                    lat, lng, row[5], row[6], 
                                                                                                                    row[7], row[8], row[9], 
                                                                                                                    row[10], row[11], row[12], 
-                                                                                                                   row[13], row[14], row[15], 
+                                                                                                                   str(1), row[14], row[15], 
                                                                                                                    row[16], row[17], row[18], 
                                                                                                                    row[19], row[20], row[21], 
                                                                                                                    row[22], row[23])
@@ -133,7 +131,7 @@ def get_old_rows():
 
 def main():
     if len(sys.argv) <= 3:
-        print('[geocode.py][ERROR] Missing arguments. Should be in form "python geocode.py input.csv output.csv')
+        print('[geocode.py][ERROR] Missing arguments. Should be in form "python geocode.py api_key input.csv output.csv')
         sys.exit()
 
     API_KEY = sys.argv[1]
