@@ -8,7 +8,7 @@
 #              the program will run the check_geocode_errors program to populate
 #              a file with all of the errors.
 #
-# How To Run: python3 input.csv output.csv
+# How To Run: python geocode.py api_key input.csv output.csv
 
 import csv
 import multiprocessing
