@@ -16,6 +16,9 @@ Any version of `requests`
 
 ## How to Use
 
+Note: The program doesn't work on the bi-employees network. You have to run this
+on bi-guest or on a network with less network restrictions.
+
 Call Syntax for Geocode: `python geocode.py [API_Key] [input_file.csv] [output_file.csv]`
 
 Note: When calling `geocode.py`, `check_geocode_errors.py` will be ran

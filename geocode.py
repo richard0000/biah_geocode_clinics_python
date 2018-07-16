@@ -16,13 +16,16 @@ import os
 import requests
 import sys
 
-proxy = 'http://local-zscaler.boehringer.com'
+#proxy = 'http://local-zscaler.boehringer.com'
 
-os.environ['http_proxy'] = proxy 
-os.environ['HTTP_PROXY'] = proxy
+#os.environ['http_proxy'] = proxy 
+#os.environ['HTTP_PROXY'] = proxy
 
-GOOGLE_MAPS_API_URL = 'http://maps.googleapis.com/maps/api/geocode/json'
+GOOGLE_MAPS_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 API_KEY = ''
+
+def GetAPIKey():
+    return str(sys.argv[1])
 
 def geocode_worker(row):
     if row[3] == "" or row[4] == "":
@@ -38,7 +41,7 @@ def geocode_worker(row):
             full_address += ", {}".format(row[10])
 
         # Geocode the address
-        request_url = GOOGLE_MAPS_API_URL + '?address={}&region={}&key={}'.format(full_address, row[10], API_KEY)
+        request_url = GOOGLE_MAPS_API_URL + '?address={}&region={}&key={}'.format(full_address, row[10], GetAPIKey())
         req = requests.get(request_url)
         res = req.json()
 
@@ -59,9 +62,13 @@ def geocode_worker(row):
                                                                                                            row[22], row[23])
         except:
             try:
-                request_url = GOOGLE_MAPS_API_URL + '?components=country:{}|postal_code:{}&address={}&key={}'.format(row[10], row[2], row[15], API_KEY)
+                request_url = GOOGLE_MAPS_API_URL + '?components=country:{}|postal_code:{}&address={}&key={}'.format(row[10], row[2], row[15], GetAPIKey())
                 req = requests.get(request_url)
                 res = req.json()
+
+                result = res['results'][0]
+                lng = result['geometry']['location']['lng']
+                lat = result['geometry']['location']['lat']
                 
                 item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                            lat, lng, row[5], row[6], 
@@ -73,10 +80,14 @@ def geocode_worker(row):
                                                                                                            row[22], row[23])
             except:
                 try:
-                    request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[15] + ',' + row[2], API_KEY)
+                    request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[15] + ',' + row[2], GetAPIKey())
                     req = requests.get(request_url)
                     res = req.json()
                     
+                    result = res['results'][0]
+                    lng = result['geometry']['location']['lng']
+                    lat = result['geometry']['location']['lat']
+
                     item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                                lat, lng, row[5], row[6], 
                                                                                                                row[7], row[8], row[9], 
@@ -87,9 +98,13 @@ def geocode_worker(row):
                                                                                                                row[22], row[23])
                 except:
                     try:
-                        request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[2], API_KEY)
+                        request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[2], GetAPIKey())
                         req = requests.get(request_url)
                         res = req.json()
+
+                        result = res['results'][0]
+                        lng = result['geometry']['location']['lng']
+                        lat = result['geometry']['location']['lat']
                         
                         item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                                    lat, lng, row[5], row[6], 
@@ -102,6 +117,7 @@ def geocode_worker(row):
                     except:
                         lng = 'ERROR'
                         lat = 'ERROR'
+                        print(res)
                         # Add to list of things to write
                         item_to_add = '{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}|{}'.format(row[0], row[1], row[2], 
                                                                                                                        lat, lng, row[5], row[6], 
@@ -134,13 +150,14 @@ def main():
         print('[geocode.py][ERROR] Missing arguments. Should be in form "python geocode.py api_key input.csv output.csv')
         sys.exit()
 
+    global API_KEY
     API_KEY = sys.argv[1]
 
     print('[geocode.py] Storing old values locally...')
     original_rows = get_old_rows()
 
     print('[geocode.py] Running the workers...')
-    pool = multiprocessing.Pool(processes=1)#multiprocessing.cpu_count())
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     new_rows = pool.map(geocode_worker, original_rows)
 
     print('[geocode.py] Writing output to file')
