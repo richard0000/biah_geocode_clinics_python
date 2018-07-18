@@ -3,10 +3,10 @@
 #
 # Description: This script is used to obtain the precise location data from
 #              Google's Geocoding API. It is multithreadded so that it is capable
-#              of running much faster than the sequential method. In case some
+#              of running much faster than the sequential method. In some cases,
 #              addresses can not be ran successfully. In order to find these,
-#              the program will run the check_geocode_errors program to populate
-#              a file with all of the errors.
+#              the program will check for errors and populate a file with all 
+#              of the errors.
 #
 # How To Run: python geocode.py api_key input.csv output.csv
 
@@ -168,9 +168,29 @@ def main():
             output_file.write('\n')
 
     print('[geocode.py] Done!')
-    print('[geocode.py] Running check_geocode_errors.py automatically...')
+    print('[geocode.py] Running error checker...')
 
-    os.system('python check_geocode_errors.py {}'.format(sys.argv[3]))
+    data_to_write = []
+
+    print('[geocode.py] Reading file for errors... (may take some time)')
+
+    with open(sys.argv[3]) as csvfile:
+        readCSV = csv.reader(csvfile, delimiter='|')
+        for row in readCSV:
+            if "ERROR" in row:
+                data_to_write.append(row)
+            elif "clinicId" in row:
+                data_to_write.append(row)
+
+    print('[geocode.py] Writing errors to errors.csv')
+
+    output_file = open('errors.csv', 'w')
+    with output_file:
+        for row in data_to_write:
+            output_file.write('|'.join(row))
+            output_file.write('\n')
+
+    print('[geocode.py] Done!')
 
 if __name__ == '__main__':
     main()
