@@ -10,6 +10,19 @@ errors.csv file with all of the entires that failed.
 Note: The program expects the input file to have the same headings as the US
 Clinic Data file standard. It will not work otherwise.
 
+There are two versions of the program; one for ANSII encoded files and one
+for UTF-16 encoded files (has foreign letters). In order to retain the special
+characters when converting to a CSV file from a XLSX file for files with foreign characters, 
+you must do the following:
+
+1) Open the file in Excel
+2) Click File in the top-left corner
+3) Click "Save As"
+4) Type in a name for the file and in the drop down menu, select "Unicode Text .txt"
+5) Save the file and exit Excel
+6) Go to the file in your file explorer and rename the extension to .csv
+7) If a warning pops up, click "Yes".
+
 ## Prerequisites
 
 Any version of `requests`
@@ -19,7 +32,11 @@ Any version of `requests`
 Note: The program doesn't work on the bi-employees network. You have to run this
 on bi-guest or on a network with less network restrictions.
 
-Call Syntax for Geocode: `python geocode.py [API_Key] [input_file.csv] [output_file.csv]`
+Call Syntax for `geocode_regular`: `python geocode_regular.py [API_Key] [input_file.csv] [output_file.csv] "delimiter"`
+
+Call Syntax for `geocode_unicode`: `python geocode_unicode.py [API_Key] [input_file.csv] [output_file.csv] "delimiter"`
+
+Note: The delimiter that is specified is the delimiter currently used in the input file.
 
 ## Author
 
