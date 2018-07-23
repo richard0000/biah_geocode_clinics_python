@@ -1,6 +1,8 @@
 # Author: Alexander Christoforides
 # Date: June 28, 2018
 #
+# Last Updated: July 23, 2018
+#
 # Description: This script is used to obtain the precise location data from
 #              Google's Geocoding API. It is multithreadded so that it is capable
 #              of running much faster than the sequential method. In some cases,
@@ -8,27 +10,50 @@
 #              the program will check for errors and populate a file with all 
 #              of the errors.
 #
-# How To Run: python geocode.py api_key input.csv output.csv
+# How To Run: python geocode_unicode.py API_KEY
 
+import argparse
 import csv
 import codecs
+import getpass
 import multiprocessing
 import os
 import requests
 import sys
+import urllib.parse
 
-#proxy = 'http://local-zscaler.boehringer.com'
+if len(sys.argv) <= 1:
+    print("[ERROR] Missing command-line arguments. Should be in form 'python geocode_regular.py API_KEY'")
+    sys.exit()
 
-#os.environ['http_proxy'] = proxy 
-#os.environ['HTTP_PROXY'] = proxy
+username = ''
+password = ''
+key = sys.argv[1]
+input_file_name = ''
+output_file_name = ''
+file_delimiter = ''
+proxy = ''
+
 GOOGLE_MAPS_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
-API_KEY = ''
 
-def GetAPIKey():
-    return str(sys.argv[1])
+def GetInput():
+    global username
+    username = input("Username: ")
+    global password
+    password = getpass.getpass()
+    password = urllib.parse.quote(password.encode("UTF-8"))
+    global input_file_name
+    input_file_name = input("Input File: ")
+    global output_file_name
+    output_file_name = input("Output File: ")
+    global file_delimiter
+    file_delimiter = input("Delimiter: ")
 
-def GetDelimiter():
-    return str(sys.argv[4])[0:1]
+    global proxy
+    proxy = 'http://{}:{}@nahpx03.am.boehringer.com:3128'.format(str(username), str(password))
+
+    os.environ['https_proxy'] = proxy
+    os.environ['HTTPS_PROXY'] = proxy
 
 def geocode_worker(row):
     if row[3] == "" or row[4] == "":
@@ -44,7 +69,7 @@ def geocode_worker(row):
             full_address += ", {}".format(row[10])
 
         # Geocode the address
-        request_url = GOOGLE_MAPS_API_URL + '?address={}&region={}&key={}'.format(full_address, row[10], GetAPIKey())
+        request_url = GOOGLE_MAPS_API_URL + '?address={}&region={}&key={}'.format(full_address, row[10], key)
         req = requests.get(request_url)
         res = req.json()
 
@@ -65,7 +90,7 @@ def geocode_worker(row):
                                                                                                            row[22], row[23])
         except:
             try:
-                request_url = GOOGLE_MAPS_API_URL + '?components=country:{}|postal_code:{}&address={}&key={}'.format(row[10], row[2], row[15], GetAPIKey())
+                request_url = GOOGLE_MAPS_API_URL + '?components=country:{}|postal_code:{}&address={}&key={}'.format(row[10], row[2], row[15], key)
                 req = requests.get(request_url)
                 res = req.json()
 
@@ -83,7 +108,7 @@ def geocode_worker(row):
                                                                                                            row[22], row[23])
             except:
                 try:
-                    request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[15] + ',' + row[2], GetAPIKey())
+                    request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[15] + ',' + row[2], key)
                     req = requests.get(request_url)
                     res = req.json()
                     
@@ -101,7 +126,7 @@ def geocode_worker(row):
                                                                                                                row[22], row[23])
                 except:
                     try:
-                        request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[2], GetAPIKey())
+                        request_url = GOOGLE_MAPS_API_URL + '?components=country:{}&address={}&key={}'.format(row[10], row[2], key)
                         req = requests.get(request_url)
                         res = req.json()
 
@@ -139,23 +164,20 @@ def geocode_worker(row):
     return item_to_add
 
 def get_old_rows():
+    global input_file_name
+    input_file_name = str(input_file_name)
     original_rows = []
 
-    #with open(sys.argv[2]) as csvfile:
-    readCSV = csv.reader(codecs.open(sys.argv[2], 'rU', 'utf-16'))#csvfile, delimiter=GetDelimiter())
+    readCSV = csv.reader(codecs.open(input_file_name, 'rU', 'utf-16'))
     for row in readCSV:
         original_rows.append(row)
 
     return original_rows
 
 def main():
-    print(len(sys.argv))
-    if len(sys.argv) <= 4:
-        print('[geocode.py][ERROR] Missing arguments. Should be in form "python geocode.py api_key input.csv output.csv \'delimiter\'')
-        sys.exit()
-
-    global API_KEY
-    API_KEY = sys.argv[1]
+    global output_file_name
+    output_file_name = str(output_file_name)
+    GetInput()
 
     print('[geocode.py] Storing old values locally...')
     original_rows = get_old_rows()
@@ -165,7 +187,7 @@ def main():
     new_rows = pool.map(geocode_worker, original_rows)
 
     print('[geocode.py] Writing output to file')
-    output_file = codecs.open(sys.argv[3], 'w', 'utf-16')
+    output_file = codecs.open(output_file_name, 'w', 'utf-16')
     with output_file:
         for row in new_rows:
             output_file.write(''.join(str(row)))
@@ -180,7 +202,7 @@ def main():
 
     print('[geocode.py] Reading file for errors... (may take some time)')
 
-    readCSV = csv.reader(codecs.open(sys.argv[3], 'rU', 'utf-16'), delimiter='|')
+    readCSV = csv.reader(codecs.open(output_file_name, 'rU', 'utf-16'), delimiter='|')
     for row in readCSV:
         if "ERROR" in row:
             data_to_write.append(row)
