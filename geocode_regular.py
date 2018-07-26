@@ -23,7 +23,7 @@ import sys
 import urllib.parse
 
 if len(sys.argv) <= 1:
-    print("[ERROR] Missing command-line arguments. Should be in form 'python geocode_regular.py API_KEY'")
+    print("[ERROR] Missing command-line arguments. Should be in form 'geocode_regular.py API_KEY'")
     sys.exit()
 
 username = ''
@@ -50,7 +50,8 @@ def GetInput():
     file_delimiter = input("Delimiter: ")
 
     global proxy
-    proxy = 'http://{}:{}@nahpx03.am.boehringer.com:3128'.format(str(username), str(password))
+    #proxy = 'http://{}:{}@nahpx03.am.boehringer.com:3128'.format(str(username), str(password))
+    proxy = 'http://local-zscaler.boehringer.com'
 
     os.environ['https_proxy'] = proxy
     os.environ['HTTPS_PROXY'] = proxy
