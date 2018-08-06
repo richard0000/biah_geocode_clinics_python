@@ -37,11 +37,11 @@ proxy = ''
 GOOGLE_MAPS_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
 
 def GetInput():
-    global username
-    username = input("Username: ")
-    global password
-    password = getpass.getpass()
-    password = urllib.parse.quote(password.encode("UTF-8"))
+    #global username
+    #username = input("Username: ")
+    #global password
+    #password = getpass.getpass()
+    #password = urllib.parse.quote(password.encode("UTF-8"))
     global input_file_name
     input_file_name = input("Input File: ")
     global output_file_name
